@@ -1,6 +1,7 @@
 local ITEM_BALL_GFX = 92
 local SENTINEL_GREAT = 240
 local SENTINEL_ULTRA = 241
+local SENTINEL_MASTER = 242
 
 local function gameIsGen3(mod)
   if mod and mod.game and (mod.game.version == "firered" or mod.game.version == "leafgreen") then
@@ -85,6 +86,10 @@ local function rarityForItem(item)
   local pocket = tostring(ItemsData.pocketOf(id) or ""):upper()
   local fieldUse = tostring(ItemsData.fieldUseKind(id) or ""):lower()
 
+  if name == "MASTER BALL" then
+    return "master"
+  end
+
   -- Significant progression and high-value utility items.
   if pocket == "KEY_ITEMS"
       or fieldUse == "tm"
@@ -97,7 +102,6 @@ local function rarityForItem(item)
       or name == "STARDUST"
       or name == "STAR PIECE"
       or name == "COMET SHARD"
-      or name == "MASTER BALL"
       or name == "ULTRA BALL" then
     return "ultra"
   end
@@ -157,6 +161,7 @@ return function(mod)
     local originalResolve = Space.resolveObjectGraphicsId
     Space.resolveObjectGraphicsId = function(obj, neighbor)
       if type(obj) == "table" and obj._gen3BallRarity then
+        if obj._gen3BallRarity == "master" then return SENTINEL_MASTER end
         if obj._gen3BallRarity == "great" then return SENTINEL_GREAT end
         if obj._gen3BallRarity == "ultra" then return SENTINEL_ULTRA end
         return ITEM_BALL_GFX
@@ -170,7 +175,9 @@ return function(mod)
     local originalDraw = OwSprites.draw
     OwSprites.draw = function(graphicsId, px, py, camX, camY, facing, walkPhase, stepFlip, opts)
       local itemId
-      if graphicsId == SENTINEL_GREAT then
+      if graphicsId == SENTINEL_MASTER then
+        itemId = 1
+      elseif graphicsId == SENTINEL_GREAT then
         itemId = 3
       elseif graphicsId == SENTINEL_ULTRA then
         itemId = 2
