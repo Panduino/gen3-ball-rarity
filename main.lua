@@ -57,8 +57,14 @@ local function scriptForObject(def)
   if not Space.bundle and Space.ensureBundle then
     pcall(Space.ensureBundle, Space._mod)
   end
+  local direct = def and (def.itemId or def.itemID or def.item)
+  if direct ~= nil then
+    local id = normalizeItem(direct)
+    if id == NUGGET_ID then return true end
+  end
+
   local key = def and (def.scriptKey or def.script)
-  if type(key) ~= "string" then return nil end
+  if type(key) ~= "string" then return false end
 
   local resolved = Space.scriptKey and Space.scriptKey(key) or key
   local scripts = Space.bundle and Space.bundle.scripts
