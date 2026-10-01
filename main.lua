@@ -1,6 +1,6 @@
 local ITEM_BALL_GFX = 92
 local MASTER_BALL_ID = 1
-local NUGGET_ID = 92
+local NUGGET_ID = 106
 local SENTINEL_MASTER = 242
 
 local function gameIsGen3(mod)
@@ -62,21 +62,10 @@ local function scriptForObject(def)
   return scripts and scripts[resolved]
 end
 
-local function convertNuggetPickups()
-  local okO, Objects = pcall(require, "src.core.game3.objects")
-  if not okO or type(Objects) ~= "table" then return end
-
-  for _, lid in ipairs(Objects._order or {}) do
-    local obj = Objects._byId and Objects._byId[lid]
-    local def = obj and obj.def
-    if def and tonumber(obj.graphicsId) == ITEM_BALL_GFX then
-      local rows = scriptForObject(def)
-      if rows and replaceNuggets(rows, nil, 0) then
-        obj._gen3NuggetMasterBall = true
-        def._gen3NuggetMasterBall = true
-      end
-    end
-  end
+local function objectContainsNugget(def)
+  local rows = scriptForObject(def)
+  if not rows then return false end
+  return replaceNuggets(rows, nil, 0)
 end
 
 return function(mod)
@@ -91,7 +80,6 @@ return function(mod)
     local originalLoadMap = Objects.loadMap
     Objects.loadMap = function(...)
       local result = originalLoadMap(...)
-      convertNuggetPickups()
       return result
     end
     Objects._gen3NuggetMasterBallWrapped = true
@@ -100,9 +88,18 @@ return function(mod)
   if not Space._gen3NuggetMasterBallWrapped then
     local originalResolve = Space.resolveObjectGraphicsId
     Space.resolveObjectGraphicsId = function(obj, neighbor)
-      if type(obj) == "table" and obj._gen3NuggetMasterBall then
-        return SENTINEL_MASTER
+      if type(obj) == "table" then
+        if obj._gen3NuggetMasterBall then
+          return SENTINEL_MASTER
+        end
+
+        local baseGfx = tonumber(obj.graphicsId or obj.graphics)
+        if baseGfx == ITEM_BALL_GFX and objectContainsNugget(obj) then
+          obj._gen3NuggetMasterBall = true
+          return SENTINEL_MASTER
+        end
       end
+
       return originalResolve(obj, neighbor)
     end
     Space._gen3NuggetMasterBallWrapped = true
