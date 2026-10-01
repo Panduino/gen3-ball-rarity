@@ -1,4 +1,4 @@
-# Gen 3 Ball Rarity
+# Dynamic Overworld Items
 
 A G1R Deluxe mod for **Pokémon FireRed / LeafGreen** that changes the appearance of overworld item pickups based on the value and usefulness of the item they contain.
 
