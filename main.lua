@@ -1,6 +1,6 @@
 local ITEM_BALL_GFX = 92
 local MASTER_BALL_ID = 1
-local NUGGET_ID = 106
+local NUGGET_ID = 110
 local SENTINEL_MASTER = 242
 
 local function gameIsGen3(mod)
@@ -54,6 +54,9 @@ end
 
 local function scriptForObject(def)
   local Space = require("src.core.game3.scripting.space")
+  if not Space.bundle and Space.ensureBundle then
+    pcall(Space.ensureBundle, Space._mod)
+  end
   local key = def and (def.scriptKey or def.script)
   if type(key) ~= "string" then return nil end
 
