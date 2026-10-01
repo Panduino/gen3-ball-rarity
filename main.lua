@@ -46,6 +46,12 @@ local function itemFromObject(def)
   if not Space.bundle and Space.ensureBundle then
     pcall(Space.ensureBundle, Space._mod)
   end
+  local direct = def and (def.itemId or def.itemID or def.item)
+  if direct ~= nil then
+    local id = normalizeItem(direct)
+    if id then return id end
+  end
+
   local key = def and (def.scriptKey or def.script)
   if type(key) ~= "string" then return nil end
 
