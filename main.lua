@@ -160,11 +160,23 @@ return function(mod)
   if not Space._gen3BallRarityWrapped then
     local originalResolve = Space.resolveObjectGraphicsId
     Space.resolveObjectGraphicsId = function(obj, neighbor)
-      if type(obj) == "table" and obj._gen3BallRarity then
-        if obj._gen3BallRarity == "master" then return SENTINEL_MASTER end
-        if obj._gen3BallRarity == "great" then return SENTINEL_GREAT end
-        if obj._gen3BallRarity == "ultra" then return SENTINEL_ULTRA end
-        return ITEM_BALL_GFX
+      if type(obj) == "table" then
+        -- Resolve the item before the object is spawned. Objects.newEventObject()
+        -- calls this function while it is building the runtime object, so
+        -- annotating objects from loadMap() is too late for graphicsId.
+        local baseGfx = tonumber(obj.graphicsId or obj.graphics)
+        if baseGfx == ITEM_BALL_GFX then
+          local rarity = obj._gen3BallRarity
+          if not rarity then
+            rarity = rarityForItem(itemFromObject(obj))
+            obj._gen3BallRarity = rarity
+          end
+
+          if rarity == "master" then return SENTINEL_MASTER end
+          if rarity == "great" then return SENTINEL_GREAT end
+          if rarity == "ultra" then return SENTINEL_ULTRA end
+          return ITEM_BALL_GFX
+        end
       end
       return originalResolve(obj, neighbor)
     end
