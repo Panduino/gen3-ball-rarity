@@ -31,7 +31,7 @@ local function findGivenItem(rows, seen, depth)
   for _, row in pairs(rows) do
     if type(row) == "table" then
       local op = row[1] or row.op
-      if op == "give_item" then
+      if op == "give_item" or op == "giveitem" or op == "verbosegiveitem" then
         return row[2] or row.item
       end
       local found = findGivenItem(row, seen, depth + 1)
@@ -180,7 +180,8 @@ local function annotateObjects()
     local obj = Objects._byId and Objects._byId[lid]
     local def = obj and obj.def
     if def and tonumber(def.graphicsId) == ITEM_BALL_GFX then
-      local rarity = rarityForItem(itemFromObject(def))
+      local item = def.item or def.itemId or def.itemID
+      local rarity = rarityForItem(item)
       def._gen3BallRarity = rarity
       obj._gen3BallRarity = rarity
     end
@@ -219,6 +220,21 @@ return function(mod)
       [CUSTOM_GREAT] = love.graphics.newQuad(0, 32, 16, 16, w, h),
       [CUSTOM_ULTRA] = love.graphics.newQuad(0, 48, 16, 16, w, h),
     }
+
+    -- Feed the custom sheets into the normal Gen3 overworld sprite cache.
+    -- This makes the engine's existing OwSprites.draw() path render them.
+    for gid, quad in pairs(ballQuads) do
+      OwSprites._loaded[gid] = {
+        image = ballImage,
+        imageData = nil,
+        quads = { [0] = quad },
+        width = 16,
+        height = 16,
+        frameCount = 1,
+        inanimate = true,
+      }
+    end
+
     return true
   end
 
@@ -240,7 +256,7 @@ return function(mod)
         if baseGfx == ITEM_BALL_GFX then
           local rarity = obj._gen3BallRarity
           if not rarity then
-            rarity = rarityForItem(itemFromObject(obj))
+            rarity = rarityForItem(obj.item or obj.itemId or obj.itemID or itemFromObject(obj))
             obj._gen3BallRarity = rarity
           end
 
