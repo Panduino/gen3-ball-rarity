@@ -96,7 +96,9 @@ local function rarityForItem(item)
       or name == "BIG PEARL"
       or name == "STARDUST"
       or name == "STAR PIECE"
-      or name == "COMET SHARD" then
+      or name == "COMET SHARD"
+      or name == "MASTER BALL"
+      or name == "ULTRA BALL" then
     return "ultra"
   end
 
@@ -111,9 +113,7 @@ local function rarityForItem(item)
       or name == "MAX ETHER"
       or name == "ELIXIR"
       or name == "MAX ELIXIR"
-      or id == 1
-      or id == 2
-      or id == 3 then
+      or name == "GREAT BALL" then
     return "great"
   end
 
