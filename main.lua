@@ -1,7 +1,7 @@
 local ITEM_BALL_GFX = 92
 local MASTER_BALL_ID = 1
 local NUGGET_ID = 110
-local SENTINEL_MASTER = 242
+local SENTINEL_MASTER = 237
 
 local function gameIsGen3(mod)
   if mod and mod.game and (mod.game.version == "firered" or mod.game.version == "leafgreen") then
@@ -22,7 +22,7 @@ local function normalizeItem(item)
 end
 
 local function replaceNuggets(rows, seen, depth)
-  if type(rows) ~= "table" or depth > 10 then return false end
+  if type(rows) ~= "table" or depth > 20 then return false end
   seen = seen or {}
   if seen[rows] then return false end
   seen[rows] = true
@@ -30,21 +30,38 @@ local function replaceNuggets(rows, seen, depth)
   local changed = false
   for _, row in pairs(rows) do
     if type(row) == "table" then
-      local op = row[1] or row.op
-      if op == "give_item" then
+      local op = row.op or row[1]
+
+      if op == "give_item" or op == "giveitem" or op == "verbosegiveitem" then
         local item = normalizeItem(row[2] or row.item)
         if item == NUGGET_ID then
-          if row[1] ~= nil then
-            row[2] = MASTER_BALL_ID
+          if row.op ~= nil then
+            if row.item ~= nil then
+              row.item = MASTER_BALL_ID
+            else
+              row[2] = MASTER_BALL_ID
+            end
           else
-            row.item = MASTER_BALL_ID
+            row[2] = MASTER_BALL_ID
           end
           changed = true
         end
-      else
-        if replaceNuggets(row, seen, depth + 1) then
+
+      elseif op == "setorcopyvar" or op == "setvar" or op == "copyvar" then
+        local target = row.var or row[1]
+        local value = row.value or row[2]
+        if tonumber(target) == 0x8000 and normalizeItem(value) == NUGGET_ID then
+          if row.value ~= nil then
+            row.value = MASTER_BALL_ID
+          else
+            row[2] = MASTER_BALL_ID
+          end
           changed = true
         end
+      end
+
+      if replaceNuggets(row, seen, depth + 1) then
+        changed = true
       end
     end
   end
