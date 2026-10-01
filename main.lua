@@ -40,8 +40,9 @@ local function findGivenItem(rows, seen, depth)
       if op == "setorcopyvar" or op == "setvar" or op == "copyvar" then
         local target = row[1] or row.var
         local value = row[2] or row.value
-        if tonumber(target) == 0x8000 and value ~= nil and tonumber(value) then
-          return value
+        local itemId = value ~= nil and normalizeItem(value) or nil
+        if tonumber(target) == 0x8000 and itemId then
+          return itemId
         end
       end
 
@@ -190,7 +191,7 @@ local function annotateObjects()
   for _, lid in ipairs(Objects._order or {}) do
     local obj = Objects._byId and Objects._byId[lid]
     local def = obj and obj.def
-    if def and tonumber(def.graphicsId) == ITEM_BALL_GFX then
+    if def and tonumber(def.graphicsId or def.graphics) == ITEM_BALL_GFX then
       local item = def.item or def.itemId or def.itemID
       local rarity = rarityForItem(item)
       def._gen3BallRarity = rarity
