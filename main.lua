@@ -1,7 +1,8 @@
 local ITEM_BALL_GFX = 92
-local SENTINEL_GREAT = 240
-local SENTINEL_ULTRA = 241
-local SENTINEL_MASTER = 242
+local SENTINEL_POKE = 240
+local SENTINEL_MASTER = 241
+local SENTINEL_GREAT = 242
+local SENTINEL_ULTRA = 243
 
 local function gameIsGen3(mod)
   if mod and mod.game and (mod.game.version == "firered" or mod.game.version == "leafgreen") then
@@ -99,7 +100,6 @@ local function rarityForItem(item)
     return "master"
   end
 
-  -- Significant progression and high-value utility items.
   if pocket == "KEY_ITEMS"
       or fieldUse == "tm"
       or fieldUse == "evo"
@@ -115,7 +115,6 @@ local function rarityForItem(item)
     return "ultra"
   end
 
-  -- Stronger medicines and PP/status recovery.
   if name == "FULL RESTORE"
       or name == "MAX POTION"
       or name == "HYPER POTION"
@@ -154,7 +153,34 @@ return function(mod)
   local Objects = require("src.core.game3.objects")
   local Space = require("src.core.game3.scripting.space")
   local OwSprites = require("src.core.game3.ow_sprites")
-  local BagChrome = require("src.ui.game3.bag_chrome")
+
+  local ballImage
+  local ballQuads
+
+  local function loadBallSheet()
+    if ballImage and ballQuads then return true end
+
+    local ok, image = pcall(mod.assets.image, mod.assets, "assets/pokeballs.png")
+    if not ok or not image then return false end
+
+    local w, h = image:getDimensions()
+    if w ~= 16 or h ~= 64 then
+      print(string.format(
+        "[gen3-ball-rarity] assets/pokeballs.png must be 16x64, got %dx%d",
+        w, h))
+      return false
+    end
+
+    image:setFilter("nearest", "nearest")
+    ballImage = image
+    ballQuads = {
+      [SENTINEL_POKE] = love.graphics.newQuad(0, 0, 16, 16, w, h),
+      [SENTINEL_MASTER] = love.graphics.newQuad(0, 16, 16, 16, w, h),
+      [SENTINEL_GREAT] = love.graphics.newQuad(0, 32, 16, 16, w, h),
+      [SENTINEL_ULTRA] = love.graphics.newQuad(0, 48, 16, 16, w, h),
+    }
+    return true
+  end
 
   if not Objects._gen3BallRarityWrapped then
     local originalLoadMap = Objects.loadMap
@@ -170,9 +196,6 @@ return function(mod)
     local originalResolve = Space.resolveObjectGraphicsId
     Space.resolveObjectGraphicsId = function(obj, neighbor)
       if type(obj) == "table" then
-        -- Resolve the item before the object is spawned. Objects.newEventObject()
-        -- calls this function while it is building the runtime object, so
-        -- annotating objects from loadMap() is too late for graphicsId.
         local baseGfx = tonumber(obj.graphicsId or obj.graphics)
         if baseGfx == ITEM_BALL_GFX then
           local rarity = obj._gen3BallRarity
@@ -184,7 +207,7 @@ return function(mod)
           if rarity == "master" then return SENTINEL_MASTER end
           if rarity == "great" then return SENTINEL_GREAT end
           if rarity == "ultra" then return SENTINEL_ULTRA end
-          return ITEM_BALL_GFX
+          return SENTINEL_POKE
         end
       end
       return originalResolve(obj, neighbor)
@@ -195,32 +218,19 @@ return function(mod)
   if not OwSprites._gen3BallRarityWrapped then
     local originalDraw = OwSprites.draw
     OwSprites.draw = function(graphicsId, px, py, camX, camY, facing, walkPhase, stepFlip, opts)
-      local itemId
-      if graphicsId == SENTINEL_MASTER then
-        itemId = 1
-      elseif graphicsId == SENTINEL_GREAT then
-        itemId = 3
-      elseif graphicsId == SENTINEL_ULTRA then
-        itemId = 2
-      end
-
-      if itemId then
-        local img = BagChrome.iconImage(itemId)
-        if img then
-          local scale = 2 / 3
-          local w, h = img:getDimensions()
-          local sx = px - camX + (16 - w * scale) / 2
-          local sy = py - camY + (16 - h * scale)
-          love.graphics.setColor(1, 1, 1, 1)
-          love.graphics.draw(img, sx, sy, 0, scale, scale)
-          return true
-        end
+      local quad = ballQuads and ballQuads[tonumber(graphicsId)]
+      if quad and loadBallSheet() then
+        love.graphics.setColor(1, 1, 1, 1)
+        love.graphics.draw(ballImage, quad, px - camX, py - camY)
+        return true
       end
 
       return originalDraw(graphicsId, px, py, camX, camY, facing, walkPhase, stepFlip, opts)
     end
     OwSprites._gen3BallRarityWrapped = true
   end
+
+  loadBallSheet()
 
   if mod.events then
     mod.events:on("map.entered", function(ev)
