@@ -218,8 +218,12 @@ return function(mod)
   if not OwSprites._gen3BallRarityWrapped then
     local originalDraw = OwSprites.draw
     OwSprites.draw = function(graphicsId, px, py, camX, camY, facing, walkPhase, stepFlip, opts)
+      if not loadBallSheet() then
+        return originalDraw(graphicsId, px, py, camX, camY, facing, walkPhase, stepFlip, opts)
+      end
+
       local quad = ballQuads and ballQuads[tonumber(graphicsId)]
-      if quad and loadBallSheet() then
+      if quad then
         love.graphics.setColor(1, 1, 1, 1)
         love.graphics.draw(ballImage, quad, px - camX, py - camY)
         return true
