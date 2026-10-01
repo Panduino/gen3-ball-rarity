@@ -57,14 +57,9 @@ local function scriptForObject(def)
   if not Space.bundle and Space.ensureBundle then
     pcall(Space.ensureBundle, Space._mod)
   end
-  local direct = def and (def.itemId or def.itemID or def.item)
-  if direct ~= nil then
-    local id = normalizeItem(direct)
-    if id == NUGGET_ID then return true end
-  end
 
   local key = def and (def.scriptKey or def.script)
-  if type(key) ~= "string" then return false end
+  if type(key) ~= "string" then return nil end
 
   local resolved = Space.scriptKey and Space.scriptKey(key) or key
   local scripts = Space.bundle and Space.bundle.scripts
@@ -72,6 +67,13 @@ local function scriptForObject(def)
 end
 
 local function objectContainsNugget(def)
+  if type(def) ~= "table" then return false end
+
+  local direct = def.itemId or def.itemID or def.item
+  if direct ~= nil and normalizeItem(direct) == NUGGET_ID then
+    return true
+  end
+
   local rows = scriptForObject(def)
   if not rows then return false end
   return replaceNuggets(rows, nil, 0)
@@ -104,6 +106,15 @@ return function(mod)
 
         local baseGfx = tonumber(obj.graphicsId or obj.graphics)
         if baseGfx == ITEM_BALL_GFX and objectContainsNugget(obj) then
+          -- Item balls use def.item when they are collected. Change it before
+          -- the runtime object is spawned so the pickup itself gives a Master Ball.
+          if obj.item ~= nil then
+            obj.item = MASTER_BALL_ID
+          elseif obj.itemId ~= nil then
+            obj.itemId = MASTER_BALL_ID
+          elseif obj.itemID ~= nil then
+            obj.itemID = MASTER_BALL_ID
+          end
           obj._gen3NuggetMasterBall = true
           return SENTINEL_MASTER
         end
