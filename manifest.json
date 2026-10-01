@@ -1,6 +1,6 @@
 {
-  "id": "gen3_ball_rarity",
-  "name": "Gen 3 Ball Rarity",
+  "id": "gen3_nugget_master_ball",
+  "name": "Gen 3 Nugget Master Balls",
   "version": "1.0.0",
   "api": 2,
   "entry": "main.lua",
@@ -8,10 +8,10 @@
   "category": "GAMEPLAY",
   "games": ["firered", "leafgreen"],
   "game_version": ">=0.0.0-0 <2.0.0",
-  "priority": 90,
+  "priority": 91,
   "dependencies": [],
-  "optional_dependencies": [],
+  "optional_dependencies": ["gen3_ball_rarity"],
   "conflicts": [],
   "affects_link": false,
-  "description": "Changes FireRed and LeafGreen overworld item pickup graphics according to item rarity."
+  "description": "Replaces every FireRed and LeafGreen overworld Nugget pickup with a Master Ball."
 }
