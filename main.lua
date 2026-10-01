@@ -34,6 +34,17 @@ local function findGivenItem(rows, seen, depth)
       if op == "give_item" or op == "giveitem" or op == "verbosegiveitem" then
         return row[2] or row.item
       end
+
+      -- Ground item-ball scripts store the item in VAR_ITEM_ID (0x8000)
+      -- before calling the standard item-obtain script.
+      if op == "setorcopyvar" or op == "setvar" or op == "copyvar" then
+        local target = row[1] or row.var
+        local value = row[2] or row.value
+        if tonumber(target) == 0x8000 and value ~= nil and tonumber(value) then
+          return value
+        end
+      end
+
       local found = findGivenItem(row, seen, depth + 1)
       if found ~= nil then return found end
     end
