@@ -1,8 +1,8 @@
 local ITEM_BALL_GFX = 92
-local SENTINEL_POKE = 240
-local SENTINEL_MASTER = 241
-local SENTINEL_GREAT = 242
-local SENTINEL_ULTRA = 243
+local CUSTOM_POKE = 236
+local CUSTOM_MASTER = 237
+local CUSTOM_GREAT = 238
+local CUSTOM_ULTRA = 239
 
 local function gameIsGen3(mod)
   if mod and mod.game and (mod.game.version == "firered" or mod.game.version == "leafgreen") then
@@ -47,6 +47,7 @@ local function itemFromObject(def)
   if not Space.bundle and Space.ensureBundle then
     pcall(Space.ensureBundle, Space._mod)
   end
+
   local direct = def and (def.itemId or def.itemID or def.item)
   if direct ~= nil then
     local id = normalizeItem(direct)
@@ -65,11 +66,20 @@ local function itemFromObject(def)
   local upper = key:upper()
   local names = {
     "MASTER_BALL", "ULTRA_BALL", "GREAT_BALL", "POKE_BALL",
-    "FULL_RESTORE", "MAX_POTION", "HYPER_POTION", "SUPER_POTION",
-    "FULL_HEAL", "REVIVE", "MAX_REVIVE", "MAX_ELIXIR", "ELIXIR",
-    "MAX_ETHER", "ETHER", "RARE_CANDY", "NUGGET",
-    "SUN_STONE", "MOON_STONE", "FIRE_STONE", "THUNDER_STONE",
-    "WATER_STONE", "LEAF_STONE"
+    "POTION", "SUPER_POTION", "HYPER_POTION", "MAX_POTION",
+    "FULL_RESTORE", "FULL_HEAL", "REVIVE", "MAX_REVIVE",
+    "ANTIDOTE", "BURN_HEAL", "ICE_HEAL", "AWAKENING", "PARLYZ_HEAL",
+    "FRESH_WATER", "SODA_POP", "LEMONADE", "MOOMOO_MILK",
+    "ENERGYPOWDER", "ENERGY_ROOT", "HEAL_POWDER", "REVIVAL_HERB",
+    "ETHER", "MAX_ETHER", "ELIXIR", "MAX_ELIXIR", "PP_UP", "PP_MAX",
+    "REPEL", "SUPER_REPEL", "MAX_REPEL", "ESCAPE_ROPE",
+    "RARE_CANDY", "NUGGET", "PEARL", "BIG_PEARL", "STARDUST", "STAR_PIECE",
+    "BIG_MUSHROOM", "HEART_SCALE", "SACRED_ASH",
+    "PROTEIN", "IRON", "CALCIUM", "ZINC", "CARBOS", "HP_UP",
+    "FIRE_STONE", "WATER_STONE", "THUNDER_STONE", "LEAF_STONE",
+    "MOON_STONE", "SUN_STONE", "DRAGON_SCALE", "KINGS_ROCK",
+    "GUARD_SPEC", "DIRE_HIT", "X_ATTACK", "X_DEFEND", "X_SPEED",
+    "X_ACCURACY", "X_SPECIAL",
   }
 
   for _, name in ipairs(names) do
@@ -86,47 +96,77 @@ local function itemFromObject(def)
   return nil
 end
 
+local function makeSet(names)
+  local set = {}
+  for _, name in ipairs(names) do
+    set[name] = true
+  end
+  return set
+end
+
+local REGULAR_ITEMS = makeSet({
+  "POTION", "ANTIDOTE", "BURN HEAL", "ICE HEAL", "AWAKENING", "PARLYZ HEAL",
+  "FRESH WATER", "ENERGYPOWDER", "BERRY JUICE",
+  "REPEL", "ESCAPE ROPE",
+  "X ATTACK", "X DEFEND", "X SPEED", "X ACCURACY", "X SPECIAL",
+  "GUARD SPEC.", "DIRE HIT",
+  "CHERI BERRY", "CHESTO BERRY", "PECHA BERRY", "RAWST BERRY", "ASPEAR BERRY",
+  "LEPPA BERRY", "ORAN BERRY", "PERSIM BERRY", "LUM BERRY", "SITRUS BERRY",
+  "RAZZ BERRY", "BLUK BERRY", "NANAB BERRY", "WEPEAR BERRY", "PINAP BERRY",
+  "TINY MUSHROOM", "PEARL", "SHOAL SALT", "SHOAL SHELL",
+  "RED SHARD", "YELLOW SHARD", "GREEN SHARD", "BLUE SHARD",
+})
+
+local GREAT_ITEMS = makeSet({
+  "SUPER POTION", "FULL HEAL", "REVIVE",
+  "ENERGY ROOT", "HEAL POWDER",
+  "SODA POP", "LEMONADE", "MOOMOO MILK",
+  "ETHER", "ELIXIR",
+  "SUPER REPEL",
+  "BIG MUSHROOM", "HEART SCALE", "STARDUST", "STAR PIECE", "BIG PEARL",
+  "PROTEIN", "IRON", "CALCIUM", "ZINC", "CARBOS", "HP UP", "PP UP",
+  "FIRE STONE", "WATER STONE", "THUNDERSTONE", "LEAF STONE", "MOON STONE",
+  "GREAT BALL",
+})
+
+local ULTRA_ITEMS = makeSet({
+  "FULL RESTORE", "MAX POTION", "HYPER POTION",
+  "MAX REVIVE", "REVIVAL HERB", "SACRED ASH",
+  "MAX ETHER", "MAX ELIXIR", "PP MAX",
+  "MAX REPEL", "RARE CANDY",
+  "NUGGET", "ULTRA BALL",
+  "SUN STONE", "DRAGON SCALE", "KINGS ROCK",
+})
+
 local function rarityForItem(item)
   if not item then return nil end
+
   local ItemsData = require("src.core.game3.items_data")
   local id = normalizeItem(item)
   if not id then return nil end
 
   local name = tostring(ItemsData.displayName(id) or ""):upper()
-  local pocket = tostring(ItemsData.pocketOf(id) or ""):upper()
   local fieldUse = tostring(ItemsData.fieldUseKind(id) or ""):lower()
+  local pocket = tostring(ItemsData.pocketOf(id) or ""):upper()
 
   if name == "MASTER BALL" then
     return "master"
   end
 
-  if pocket == "KEY_ITEMS"
+  if ULTRA_ITEMS[name]
+      or name:match("^TM%d%d$")
+      or name:match("^HM%d%d$")
       or fieldUse == "tm"
-      or fieldUse == "evo"
-      or fieldUse == "level"
-      or name:find("FOSSIL", 1, true)
-      or name == "NUGGET"
-      or name == "PEARL"
-      or name == "BIG PEARL"
-      or name == "STARDUST"
-      or name == "STAR PIECE"
-      or name == "COMET SHARD"
-      or name == "ULTRA BALL" then
+      or pocket == "KEY_ITEMS" then
     return "ultra"
   end
 
-  if name == "FULL RESTORE"
-      or name == "MAX POTION"
-      or name == "HYPER POTION"
-      or name == "FULL HEAL"
-      or name == "REVIVE"
-      or name == "MAX REVIVE"
-      or name == "ETHER"
-      or name == "MAX ETHER"
-      or name == "ELIXIR"
-      or name == "MAX ELIXIR"
-      or name == "GREAT BALL" then
+  if GREAT_ITEMS[name] then
     return "great"
+  end
+
+  if REGULAR_ITEMS[name] then
+    return "regular"
   end
 
   return "regular"
@@ -139,7 +179,7 @@ local function annotateObjects()
   for _, lid in ipairs(Objects._order or {}) do
     local obj = Objects._byId and Objects._byId[lid]
     local def = obj and obj.def
-    if def and tonumber(obj.graphicsId) == ITEM_BALL_GFX then
+    if def and tonumber(def.graphicsId) == ITEM_BALL_GFX then
       local rarity = rarityForItem(itemFromObject(def))
       def._gen3BallRarity = rarity
       obj._gen3BallRarity = rarity
@@ -174,10 +214,10 @@ return function(mod)
     image:setFilter("nearest", "nearest")
     ballImage = image
     ballQuads = {
-      [SENTINEL_POKE] = love.graphics.newQuad(0, 0, 16, 16, w, h),
-      [SENTINEL_MASTER] = love.graphics.newQuad(0, 16, 16, 16, w, h),
-      [SENTINEL_GREAT] = love.graphics.newQuad(0, 32, 16, 16, w, h),
-      [SENTINEL_ULTRA] = love.graphics.newQuad(0, 48, 16, 16, w, h),
+      [CUSTOM_POKE] = love.graphics.newQuad(0, 0, 16, 16, w, h),
+      [CUSTOM_MASTER] = love.graphics.newQuad(0, 16, 16, 16, w, h),
+      [CUSTOM_GREAT] = love.graphics.newQuad(0, 32, 16, 16, w, h),
+      [CUSTOM_ULTRA] = love.graphics.newQuad(0, 48, 16, 16, w, h),
     }
     return true
   end
@@ -204,10 +244,10 @@ return function(mod)
             obj._gen3BallRarity = rarity
           end
 
-          if rarity == "master" then return SENTINEL_MASTER end
-          if rarity == "great" then return SENTINEL_GREAT end
-          if rarity == "ultra" then return SENTINEL_ULTRA end
-          return SENTINEL_POKE
+          if rarity == "master" then return CUSTOM_MASTER end
+          if rarity == "great" then return CUSTOM_GREAT end
+          if rarity == "ultra" then return CUSTOM_ULTRA end
+          return CUSTOM_POKE
         end
       end
       return originalResolve(obj, neighbor)
