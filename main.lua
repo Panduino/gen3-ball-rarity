@@ -43,6 +43,9 @@ end
 
 local function itemFromObject(def)
   local Space = require("src.core.game3.scripting.space")
+  if not Space.bundle and Space.ensureBundle then
+    pcall(Space.ensureBundle, Space._mod)
+  end
   local key = def and (def.scriptKey or def.script)
   if type(key) ~= "string" then return nil end
 
