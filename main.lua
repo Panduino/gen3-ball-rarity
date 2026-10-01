@@ -101,8 +101,6 @@ return function(mod)
 
   local Objects = require("src.core.game3.objects")
   local Space = require("src.core.game3.scripting.space")
-  local OwSprites = require("src.core.game3.ow_sprites")
-  local BagChrome = require("src.ui.game3.bag_chrome")
 
   if not Objects._gen3NuggetMasterBallWrapped then
     local originalLoadMap = Objects.loadMap
@@ -142,24 +140,7 @@ return function(mod)
     Space._gen3NuggetMasterBallWrapped = true
   end
 
-  if not OwSprites._gen3NuggetMasterBallWrapped then
-    local originalDraw = OwSprites.draw
-    OwSprites.draw = function(graphicsId, px, py, camX, camY, facing, walkPhase, stepFlip, opts)
-      if graphicsId == SENTINEL_MASTER then
-        local img = BagChrome.iconImage(MASTER_BALL_ID)
-        if img then
-          local scale = 2 / 3
-          local w, h = img:getDimensions()
-          local sx = px - camX + (16 - w * scale) / 2
-          local sy = py - camY + (16 - h * scale)
-          love.graphics.setColor(1, 1, 1, 1)
-          love.graphics.draw(img, sx, sy, 0, scale, scale)
-          return true
-        end
-      end
-
-      return originalDraw(graphicsId, px, py, camX, camY, facing, walkPhase, stepFlip, opts)
-    end
-    OwSprites._gen3NuggetMasterBallWrapped = true
+  -- Graphics 237 is the Master Ball frame registered by the compatible
+  -- gen3-ball-rarity mod. Let the normal overworld renderer draw it.
   end
 end
