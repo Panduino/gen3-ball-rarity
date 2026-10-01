@@ -184,6 +184,15 @@ local function annotateObjects()
       local rarity = rarityForItem(item)
       def._gen3BallRarity = rarity
       obj._gen3BallRarity = rarity
+      if rarity == "master" then
+        obj.graphicsId = CUSTOM_MASTER
+      elseif rarity == "great" then
+        obj.graphicsId = CUSTOM_GREAT
+      elseif rarity == "ultra" then
+        obj.graphicsId = CUSTOM_ULTRA
+      else
+        obj.graphicsId = CUSTOM_POKE
+      end
     end
   end
 end
