@@ -140,7 +140,4 @@ return function(mod)
     Space._gen3NuggetMasterBallWrapped = true
   end
 
-  -- Graphics 237 is the Master Ball frame registered by the compatible
-  -- gen3-ball-rarity mod. Let the normal overworld renderer draw it.
-  end
 end
