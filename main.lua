@@ -22,6 +22,10 @@ local function normalizeItem(item)
   return ItemsData.toNumericId(item) or tonumber(item)
 end
 
+local function itemKey(name)
+  return tostring(name or ""):upper():gsub("[^A-Z0-9]", "")
+end
+
 local function findGivenItem(rows, seen, depth)
   if type(rows) ~= "table" or depth > 10 then return nil end
   seen = seen or {}
@@ -30,7 +34,7 @@ local function findGivenItem(rows, seen, depth)
 
   for _, row in pairs(rows) do
     if type(row) == "table" then
-      local op = row[1] or row.op
+      local op = row.op or row[1]
       if op == "give_item" or op == "giveitem" or op == "verbosegiveitem" then
         return row[2] or row.item
       end
@@ -111,7 +115,7 @@ end
 local function makeSet(names)
   local set = {}
   for _, name in ipairs(names) do
-    set[name] = true
+    set[itemKey(name)] = true
   end
   return set
 end
@@ -158,26 +162,23 @@ local function rarityForItem(item)
   if not id then return nil end
 
   local name = tostring(ItemsData.displayName(id) or ""):upper()
-  local fieldUse = tostring(ItemsData.fieldUseKind(id) or ""):lower()
-  local pocket = tostring(ItemsData.pocketOf(id) or ""):upper()
+  local key = itemKey(name)
 
-  if name == "MASTER BALL" then
+  if key == "MASTERBALL" then
     return "master"
   end
 
-  if ULTRA_ITEMS[name]
-      or name:match("^TM%d%d$")
-      or name:match("^HM%d%d$")
-      or fieldUse == "tm"
-      or pocket == "KEY_ITEMS" then
+  if ULTRA_ITEMS[key]
+      or ItemsData.isTm(id)
+      or ItemsData.isHm(id) then
     return "ultra"
   end
 
-  if GREAT_ITEMS[name] then
+  if GREAT_ITEMS[key] then
     return "great"
   end
 
-  if REGULAR_ITEMS[name] then
+  if REGULAR_ITEMS[key] then
     return "regular"
   end
 
