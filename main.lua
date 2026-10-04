@@ -185,6 +185,19 @@ local function rarityForItem(item)
   return "regular"
 end
 
+local function isGroundItemObject(def)
+  if type(def) ~= "table" then return false end
+  local gfx = def.graphicsId or def.graphics or def.graphics_id
+  if tonumber(gfx) == ITEM_BALL_GFX then return true end
+  if tostring(gfx or ""):upper():find("ITEM_BALL", 1, true) then return true end
+
+  -- Hoenn Journey imports Emerald item balls as source-style event objects.
+  -- Their runtime graphics id is not guaranteed to be FireRed's 92, but the
+  -- ground-pickup scripts consistently identify them as EventScript_Item*.
+  local script = tostring(def.scriptKey or def.script or ""):upper()
+  return script:find("EVENTSCRIPT_ITEM", 1, true) ~= nil
+end
+
 local function annotateObjects()
   local okO, Objects = pcall(require, "src.core.game3.objects")
   if not okO or type(Objects) ~= "table" then return end
@@ -192,8 +205,8 @@ local function annotateObjects()
   for _, lid in ipairs(Objects._order or {}) do
     local obj = Objects._byId and Objects._byId[lid]
     local def = obj and obj.def
-    if def and tonumber(def.graphicsId or def.graphics) == ITEM_BALL_GFX then
-      local item = def.item or def.itemId or def.itemID
+    if def and isGroundItemObject(def) then
+      local item = def.item or def.itemId or def.itemID or itemFromObject(def)
       local rarity = rarityForItem(item)
       def._gen3BallRarity = rarity
       obj._gen3BallRarity = rarity
@@ -274,8 +287,7 @@ return function(mod)
     local originalResolve = Space.resolveObjectGraphicsId
     Space.resolveObjectGraphicsId = function(obj, neighbor)
       if type(obj) == "table" then
-        local baseGfx = tonumber(obj.graphicsId or obj.graphics)
-        if baseGfx == ITEM_BALL_GFX then
+        if isGroundItemObject(obj) then
           local rarity = obj._gen3BallRarity
           if not rarity then
             rarity = rarityForItem(obj.item or obj.itemId or obj.itemID or itemFromObject(obj))
