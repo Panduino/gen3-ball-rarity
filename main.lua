@@ -211,15 +211,20 @@ local function annotateObjects()
       local rarity = rarityForItem(item)
       def._gen3BallRarity = rarity
       obj._gen3BallRarity = rarity
-      if rarity == "master" then
-        obj.graphicsId = CUSTOM_MASTER
-      elseif rarity == "great" then
-        obj.graphicsId = CUSTOM_GREAT
-      elseif rarity == "ultra" then
-        obj.graphicsId = CUSTOM_ULTRA
-      else
-        obj.graphicsId = CUSTOM_POKE
-      end
+      local gid
+      if rarity == "master" then gid = CUSTOM_MASTER
+      elseif rarity == "great" then gid = CUSTOM_GREAT
+      elseif rarity == "ultra" then gid = CUSTOM_ULTRA
+      else gid = CUSTOM_POKE end
+
+      -- Hoenn Journey spawns imported Emerald objects from their definition.
+      -- Override both the persistent definition and the live actor so its
+      -- original graphicsId (11046) cannot be restored on a later update.
+      def.graphicsId = gid
+      def.graphics = gid
+      obj.graphicsId = gid
+      obj.gfx = gid
+      obj.sprite = nil
     end
   end
 end
@@ -341,10 +346,16 @@ return function(mod)
         local rarity = rarityForItem(def.item or def.itemId or def.itemID or itemFromObject(def))
         def._gen3BallRarity = rarity
         obj._gen3BallRarity = rarity
-        if rarity == "master" then obj.graphicsId = CUSTOM_MASTER
-        elseif rarity == "great" then obj.graphicsId = CUSTOM_GREAT
-        elseif rarity == "ultra" then obj.graphicsId = CUSTOM_ULTRA
-        else obj.graphicsId = CUSTOM_POKE end
+        local gid
+        if rarity == "master" then gid = CUSTOM_MASTER
+        elseif rarity == "great" then gid = CUSTOM_GREAT
+        elseif rarity == "ultra" then gid = CUSTOM_ULTRA
+        else gid = CUSTOM_POKE end
+        def.graphicsId = gid
+        def.graphics = gid
+        obj.graphicsId = gid
+        obj.gfx = gid
+        obj.sprite = nil
       end
     end)
 
