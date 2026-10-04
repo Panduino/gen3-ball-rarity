@@ -1,23 +1,25 @@
-# Dynamic Overworld Items
+# Gen 3 Ball Rarity
 
-A G1R Deluxe mod for **Pokémon FireRed / LeafGreen** that changes the appearance of overworld item pickups based on the value and usefulness of the item they contain.
+Make overworld item pickups tell you a little more before you grab them.
 
-Instead of every overworld item pickup using the standard Poké Ball appearance, pickups are displayed as a **Poké Ball, Great Ball, or Ultra Ball** according to their assigned rarity.
-Optional Support for Master Balls if they are in world loot from another mod.
+**Gen 3 Ball Rarity** changes the Poké Ball graphic used for item pickups in FireRed and LeafGreen according to the value of the item inside. Everyday supplies remain standard Poké Balls, while more valuable finds appear as Great Balls or Ultra Balls. Master Ball pickups are supported as well.
 
-* 3 Files (yippee I finally figured out how sprite sheets work)
-* Designed to be compatible with other Gen 3Recomp mods, so it's not hardcoded per drop. Changes based on the item inside
+The appearance is determined from the item itself, allowing the system to work naturally with changed item placements and other compatible mods.
+
+## Features
+
+- Poké Ball graphics reflect the rarity of the item inside
+- Great Ball and Ultra Ball tiers for more valuable pickups
+- Master Ball appearance for Master Ball pickups
+- Works dynamically rather than being tied to individual map locations
+- No changes to the items themselves
 
 ## Screenshots
 
-### Great Ball
+| Great Ball | Ultra Ball | Master Ball |
+| :---: | :---: | :---: |
+| ![Great Ball pickup](screenshots/greatball.png) | ![Ultra Ball pickup](screenshots/ultraball.png) | ![Master Ball pickup](screenshots/masterball.png) |
 
-![Great Ball pickup](screenshots/greatball.png)
+## Installation
 
-### Ultra Ball
-
-![Ultra ball pickup](screenshots/ultraball.png)
-
-### Master Ball
-
-![Master ball pickup](screenshots/masterball.png)
+Install **Gen 3 Ball Rarity** through G1R Deluxe's mod browser, or import the mod ZIP manually.
