@@ -187,6 +187,7 @@ end
 
 local function isGroundItemObject(def)
   if type(def) ~= "table" then return false end
+  if tostring(def.service or ""):lower() == "pickup" and def.item ~= nil then return true end
   local gfx = def.graphicsId or def.graphics or def.graphics_id
   if tonumber(gfx) == ITEM_BALL_GFX then return true end
   if tostring(gfx or ""):upper():find("ITEM_BALL", 1, true) then return true end
@@ -327,10 +328,30 @@ return function(mod)
   loadBallSheet()
 
   if mod.events then
-    mod.events:on("map.entered", function(ev)
-      if ev and (ev.mapId == "FR_PALLET_TOWN" or tostring(ev.mapId):find("FR_", 1, true)) then
-        annotateObjects()
+    -- Hoenn Journey builds its imported Emerald objects during/after map setup.
+    -- Re-annotate once they actually exist instead of depending on load order.
+    mod.events:on("map.entered", function()
+      annotateObjects()
+    end)
+
+    mod.events:on("world.npc_spawned", function(ev)
+      local obj = ev and ev.runtime
+      local def = obj and obj.def
+      if def and isGroundItemObject(def) then
+        local rarity = rarityForItem(def.item or def.itemId or def.itemID or itemFromObject(def))
+        def._gen3BallRarity = rarity
+        obj._gen3BallRarity = rarity
+        if rarity == "master" then obj.graphicsId = CUSTOM_MASTER
+        elseif rarity == "great" then obj.graphicsId = CUSTOM_GREAT
+        elseif rarity == "ultra" then obj.graphicsId = CUSTOM_ULTRA
+        else obj.graphicsId = CUSTOM_POKE end
       end
+    end)
+
+    -- Covers Hoenn Journey installs/rebinds that happen after our map-enter
+    -- callback. annotateObjects is idempotent and only touches pickup actors.
+    mod.events:on("world.stepped", function()
+      annotateObjects()
     end)
   end
 end
