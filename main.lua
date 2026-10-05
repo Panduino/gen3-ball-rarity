@@ -217,14 +217,23 @@ local function annotateObjects()
       elseif rarity == "ultra" then gid = CUSTOM_ULTRA
       else gid = CUSTOM_POKE end
 
-      -- Hoenn Journey spawns imported Emerald objects from their definition.
-      -- Override both the persistent definition and the live actor so its
-      -- original graphicsId (11046) cannot be restored on a later update.
-      def.graphicsId = gid
-      def.graphics = gid
-      obj.graphicsId = gid
-      obj.gfx = gid
-      obj.sprite = nil
+      -- Vanilla Kanto item balls must keep their native definition (gfx 92).
+      -- Their rarity sprite is supplied by resolveObjectGraphicsId below.
+      -- Only Hoenn Journey's imported pickup definitions need to be rewritten,
+      -- because its object loader can restore the Emerald graphics id (11046).
+      local importedPickup = tostring(def.service or ""):lower() == "pickup"
+        or tonumber(def.graphicsId or def.graphics or def.graphics_id) == 11046
+      if importedPickup then
+        local importedPickup = tostring(def.service or ""):lower() == "pickup"
+          or tonumber(def.graphicsId or def.graphics or def.graphics_id) == 11046
+        if importedPickup then
+          def.graphicsId = gid
+          def.graphics = gid
+          obj.graphicsId = gid
+          obj.gfx = gid
+          obj.sprite = nil
+        end
+      end
     end
   end
 end
