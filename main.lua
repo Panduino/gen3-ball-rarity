@@ -1,8 +1,8 @@
 local ITEM_BALL_GFX = 92
-local CUSTOM_POKE = 236
-local CUSTOM_MASTER = 237
-local CUSTOM_GREAT = 238
-local CUSTOM_ULTRA = 239
+local CUSTOM_POKE = "gen3ballrarity:poke"
+local CUSTOM_MASTER = "gen3ballrarity:master"
+local CUSTOM_GREAT = "gen3ballrarity:great"
+local CUSTOM_ULTRA = "gen3ballrarity:ultra"
 
 local function gameIsGen3(mod)
   if mod and mod.game and (mod.game.version == "firered" or mod.game.version == "leafgreen") then
@@ -271,20 +271,6 @@ return function(mod)
       [CUSTOM_ULTRA] = love.graphics.newQuad(0, 48, 16, 16, w, h),
     }
 
-    -- Feed the custom sheets into the normal Gen3 overworld sprite cache.
-    -- This makes the engine's existing OwSprites.draw() path render them.
-    for gid, quad in pairs(ballQuads) do
-      OwSprites._loaded[gid] = {
-        image = ballImage,
-        imageData = nil,
-        quads = { [0] = quad },
-        width = 16,
-        height = 16,
-        frameCount = 1,
-        inanimate = true,
-      }
-    end
-
     return true
   end
 
@@ -327,7 +313,7 @@ return function(mod)
         return originalDraw(graphicsId, px, py, camX, camY, facing, walkPhase, stepFlip, opts)
       end
 
-      local quad = ballQuads and ballQuads[tonumber(graphicsId)]
+      local quad = ballQuads and ballQuads[graphicsId]
       if quad then
         love.graphics.setColor(1, 1, 1, 1)
         love.graphics.draw(ballImage, quad, px - camX, py - camY)
