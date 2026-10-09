@@ -1,19 +1,19 @@
-local ITEM_BALL_GFX = 92
+local ITEM_BALL_GFX_FRLG = 92
+local ITEM_BALL_GFX_EMERALD = 59
+
+local function currentVersion(mod)
+  if mod and mod.game and mod.game.version then return mod.game.version end
+  local ok, GameVersion = pcall(require, "src.core.GameVersion")
+  return ok and GameVersion.get and GameVersion.get() or nil
+end
 local CUSTOM_POKE = "gen3ballrarity:poke"
 local CUSTOM_MASTER = "gen3ballrarity:master"
 local CUSTOM_GREAT = "gen3ballrarity:great"
 local CUSTOM_ULTRA = "gen3ballrarity:ultra"
 
 local function gameIsGen3(mod)
-  if mod and mod.game and (mod.game.version == "firered" or mod.game.version == "leafgreen") then
-    return true
-  end
-  local ok, GameVersion = pcall(require, "src.core.GameVersion")
-  if ok and GameVersion.get then
-    local version = GameVersion.get()
-    return version == "firered" or version == "leafgreen"
-  end
-  return false
+  local version = currentVersion(mod)
+  return version == "firered" or version == "leafgreen" or version == "emerald"
 end
 
 local function normalizeItem(item)
@@ -189,7 +189,9 @@ local function isGroundItemObject(def)
   if type(def) ~= "table" then return false end
   if tostring(def.service or ""):lower() == "pickup" and def.item ~= nil then return true end
   local gfx = def.graphicsId or def.graphics or def.graphics_id
-  if tonumber(gfx) == ITEM_BALL_GFX then return true end
+  local version = currentVersion()
+  local itemGfx = version == "emerald" and ITEM_BALL_GFX_EMERALD or ITEM_BALL_GFX_FRLG
+  if tonumber(gfx) == itemGfx then return true end
   if tostring(gfx or ""):upper():find("ITEM_BALL", 1, true) then return true end
 
   -- Hoenn Journey imports Emerald item balls as source-style event objects.
