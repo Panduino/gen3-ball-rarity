@@ -243,11 +243,6 @@ end
 return function(mod)
   if not gameIsGen3(mod) then return end
 
-  mod.options:define({
-    { key = "debug_littleroot", label = "LITTLEROOT TEST ITEMS",
-      type = "toggle", default = false },
-  })
-
   local Objects = require("src.core.game3.objects")
   local Space = require("src.core.game3.scripting.space")
   local OwSprites = require("src.core.game3.ow_sprites")
@@ -281,43 +276,10 @@ return function(mod)
     return true
   end
 
-  -- Temporary Emerald-only test pickups. Added to the live map object
-  -- definitions before the native object loader runs.
-  local function injectDebugPickups(mapId, mapDef)
-    if mapId ~= "EM_LITTLEROOT_TOWN"
-        or mod.options:get("debug_littleroot") ~= true then return end
-    local ev = Space.bundle and Space.bundle.events and Space.bundle.events[mapId]
-    local defs = ev and (ev.objects or ev.objectEvents)
-      or mapDef and mapDef.objects
-    if type(defs) ~= "table" then return end
-    local tests = {
-      { "POTION", 7, 11 }, { "FULL_HEAL", 8, 11 },
-      { "RARE_CANDY", 9, 11 }, { "MASTER_BALL", 10, 11 },
-    }
-    local used = {}
-    for _, def in ipairs(defs) do
-      used[tonumber(def.localId or def.index)] = true
-    end
-    for i, row in ipairs(tests) do
-      local id = 220 + i
-      if not used[id] then
-        defs[#defs + 1] = {
-          localId = id, x = row[2], y = row[3],
-          graphicsId = ITEM_BALL_GFX_EMERALD,
-          graphics = ITEM_BALL_GFX_EMERALD,
-          service = "pickup", item = row[1],
-          script = "EventScript_Item" .. row[1],
-          _gen3BallRarityDebug = true,
-        }
-      end
-    end
-  end
-
   if not Objects._gen3BallRarityWrapped then
     local originalLoadMap = Objects.loadMap
-    Objects.loadMap = function(game, mapId, mapDef, ...)
-      injectDebugPickups(mapId, mapDef)
-      local result = originalLoadMap(game, mapId, mapDef, ...)
+    Objects.loadMap = function(...)
+      local result = originalLoadMap(...)
       annotateObjects()
       return result
     end
