@@ -1,17 +1,21 @@
 {
   "id": "gen3_ball_rarity",
   "name": "Gen 3 Ball Rarity",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "api": 2,
   "entry": "main.lua",
   "profile": "content",
   "category": "GAMEPLAY",
-  "games": ["firered", "leafgreen"],
+  "games": [
+    "firered",
+    "leafgreen",
+    "emerald"
+  ],
   "game_version": ">=0.0.0-0 <2.0.0",
   "priority": 90,
   "dependencies": [],
   "optional_dependencies": [],
   "conflicts": [],
   "affects_link": false,
-  "description": "Changes FireRed and LeafGreen overworld item pickup graphics according to item rarity."
+  "description": "Changes FireRed, LeafGreen and Emerald overworld item pickup graphics according to item rarity."
 }
